@@ -1,0 +1,49 @@
+{
+  "name": "ctjs",
+  "version": "1.0.1",
+  "description": "Library for making easy access to Certificate Transparency features",
+  "devDependencies": {
+    "babel-cli": "latest",
+    "babel-plugin-istanbul": "^4.1.5",
+    "babel-preset-env": "latest",
+    "cross-env": "^5.1.4",
+    "eslint": "^4.19.1",
+    "mocha": "^3.0.2",
+    "node-fetch": "^2.1.2",
+    "nyc": "^11.6.0",
+    "rollup": "latest",
+    "rollup-plugin-commonjs": "^8.2.6",
+    "rollup-plugin-node-builtins": "latest",
+    "rollup-plugin-node-resolve": "^1.7.1",
+    "node-webcrypto-ossl": "^1.0.37",
+    "urlencode": "^1.1.0"
+  },
+  "dependencies": {
+    "asn1js": "latest",
+    "bytestreamjs": "latest",
+    "pkijs": "latest",
+    "pvutils": "latest"
+  },
+  "engines": {
+    "node": ">=6.0.0"
+  },
+  "scripts": {
+    "test": "cross-env NODE_ENV=test nyc mocha --timeout 0 --require babel-register test/functional-tests.js",
+    "rfc6962-example": "mocha --timeout 0 --require babel-register examples/rfc6962-example/rfc6962-example.js",
+    "ct-monitor-auditor-example": "mocha --timeout 0 --require babel-register examples/ct-monitor-auditor-example/ct-monitor-auditor-example.js"
+  },
+  "jsnext:main": "./src/index.js",
+  "module": "./src/index.js",
+  "main": "./build/index.js",
+  "keywords": [
+    "certificate-transparency",
+    "certificate",
+    "transparency",
+    "rfc6962",
+    "rfc6962-bis",
+    "merkle",
+    "merkle-tree"
+  ],
+  "author": "Yury Strozhevsky (yury@strozhevsky.com)",
+  "license": "MIT"
+}
