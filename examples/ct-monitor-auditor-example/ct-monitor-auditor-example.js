@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 // noinspection JSUnresolvedFunction
-import { isEqualBuffer } from "pvutils";
+import { isEqualBuffer, toBase64, arrayBufferToString } from "pvutils";
 import { SeqStream } from "bytestreamjs";
 import { utils } from "../../src/utils.js";
 import LogV1 from "../../src/LogV1.js";
@@ -146,10 +146,34 @@ context("Certificate Transparency Log V1", () =>
 			//region Prepare verification data for entry type = x509_entry
 			if(entry.leaf.entry.entryType === LogEntryType.constants("x509_entry"))
 			{
+				//region Running X.509 linter service
+				const lintResults = await fetch("https://crt.sh/lintcert", {
+					method: "POST",
+					headers: { "Content-Type": "application/x-www-form-urlencoded" },
+					body: `b64cert=${encode(toBase64(arrayBufferToString(entry.leaf.entry.signedEntry.toSchema().toBER(false))))}`
+				}).then(result => result.text());
+				
+				if(lintResults.length)
+				{
+					const splittedLintResults = lintResults.split("\n");
+					
+					for(const splittedLintResult of splittedLintResults)
+					{
+						const match = splittedLintResult.match(/([^?\/s]+.*)(?:\t)([^?\/s]+.*)(?:\t)([^?\/s]+.*)/);
+						if(match !== null)
+							console.log(`Source: ${match[1]}, type: ${match[2]}, text: ${match[3]}`);
+					}
+					
+					console.log("\n");
+				}
+				//endregion
+				
+				//region Trying to append same data in order to get Signed Certificate Timestamp
 				sct = await log.add_chain([
 					entry.leaf.entry.signedEntry,
 					...entry.extra_data
 				]);
+				//endregion
 				
 				//region Find and verify SCT Extension data from certificate
 				const sctForVerification = sctFromCertificate(entry.leaf.entry.signedEntry, sct.logID);
