@@ -1,6 +1,6 @@
 {
   "name": "ctjs",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "CTjs is a full set of classes necessary to work with any kind of Certificate Transparency log (V1 as from RFC6962, or V2 as from RFC6962-bis). In CTjs you could find all necessary validation/verification functions for all related data shipped with full-featured examples showning how to validate/verify. Also in scope of CTjs I made code showing example from RFC6962 item 2.1.3 on a real data from real Certificate Transparency log",
   "repository": {
     "type": "git",

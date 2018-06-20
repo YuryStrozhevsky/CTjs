@@ -17,7 +17,25 @@ CTjs is a full set of classes necessary to work with any kind of Certificate Tra
 * Full-featured example from RFC6962 on a real data from all known CT logs;
 * Full-featured examples showing how to build real monitor/auditor for any Certificate Transparency log;
 
+## Installation
+
+```console
+npm install ctjs
+```
+
 ## Examples
+
+At the moment there are two examples:
+* [_**Example of making Monitor/Auditor functionality**_](https://github.com/YuryStrozhevsky/CTjs/tree/master/examples/ct-monitor-auditor-example);
+```console
+npm run ct-monitor-auditor-example
+```
+* [_**Example from RFC6962 on a real data**_](https://github.com/YuryStrozhevsky/CTjs/tree/master/examples/rfc6962-example);
+```console
+npm run rfc6962-example
+```
+
+There are both built as Mocha tests, but could be easily transformed in native Node.js application. In order to start  
 
 ### How to verify Signed Tree Head (STH)
 
