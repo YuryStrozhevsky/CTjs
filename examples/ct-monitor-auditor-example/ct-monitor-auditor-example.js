@@ -16,6 +16,7 @@ import { CryptoEngine, setEngine } from "pkijs";
 
 // noinspection NpmUsedModulesInstalled
 const WebCrypto = require("node-webcrypto-ossl");
+
 /**
  * @type {Object}
  * @property subtle
@@ -92,6 +93,32 @@ function sctFromCertificate(certificate, logID)
 	return null;
 }
 //*********************************************************************************
+/**
+ * Find posible phishing sites
+ * @param {Certificate} certificate
+ */
+function findPhishing(certificate)
+{
+	const result = [];
+	
+	if("extensions" in certificate)
+	{
+		const subjectAltNames = certificate.extensions.filter(element => (element.extnID === "2.5.29.17"));
+		
+		for(const subjectAltName of subjectAltNames)
+		{
+			const phishingSites = subjectAltName.parsedValue.altNames
+				.filter(element => (element.type === 2))
+				.filter(element => ((element.value.indexOf("paypal.com") !== (-1)) || (element.value.indexOf("apple.com") !== (-1))));
+			
+			if(phishingSites.length)
+				result.push(phishingSites);
+		}
+	}
+	
+	return result;
+}
+//*********************************************************************************
 context("Certificate Transparency Log V1", () =>
 {
 	//region Initial variables
@@ -146,7 +173,14 @@ context("Certificate Transparency Log V1", () =>
 			//region Prepare verification data for entry type = x509_entry
 			if(entry.leaf.entry.entryType === LogEntryType.constants("x509_entry"))
 			{
-				//region Running X.509 linter service
+				//region Test certificates for phishing sites
+				const phishingResult = findPhishing(entry.leaf.entry.signedEntry);
+				assert.deepStrictEqual(phishingResult.length, 0, `Found phishing sites: ${
+					Array.from(phishingResult, element => Array.from(element, intelement => intelement.value).join(", ")).join("\n")
+				}`);
+				//endregion
+				
+				//region Requesting X.509 linter service
 				const lintResults = await fetch("https://crt.sh/lintcert", {
 					method: "POST",
 					headers: { "Content-Type": "application/x-www-form-urlencoded" },
