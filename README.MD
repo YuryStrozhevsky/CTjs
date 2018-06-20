@@ -35,7 +35,7 @@ npm run ct-monitor-auditor-example
 npm run rfc6962-example
 ```
 
-There are both built as Mocha tests, but could be easily transformed in native Node.js application. In order to start  
+There are both built as Mocha tests, but could be easily transformed in native Node.js application.  
 
 ### How to verify Signed Tree Head (STH)
 
