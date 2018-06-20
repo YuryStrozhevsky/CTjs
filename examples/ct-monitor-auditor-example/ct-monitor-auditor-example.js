@@ -232,6 +232,13 @@ context("Certificate Transparency Log V1", () =>
 			//region Prepare verification data for entry type = precert_entry
 			else // precert_entry
 			{
+				//region Test certificates for phishing sites
+				const phishingResult = findPhishing(entry.extra_data.pre_certificate);
+				assert.deepStrictEqual(phishingResult.length, 0, `Found phishing sites in pre-certificate: ${
+					Array.from(phishingResult, element => Array.from(element, intelement => intelement.value).join(", ")).join("\n")
+				}`);
+				//endregion
+
 				sct = await log.add_pre_chain([
 					entry.extra_data.pre_certificate,
 					...entry.extra_data.precertificate_chain
