@@ -1,5 +1,6 @@
-import { getParametersValue } from "pvutils";
-import BaseClass from "./BaseClass.js";
+import { getParametersValue, utilConcatBuf } from "pvutils";
+import { getCrypto } from "pkijs";
+import { BaseClass } from "./BaseClass.js";
 import TimestampedCertificateEntryDataV2 from "./TimestampedCertificateEntryDataV2.js";
 import SignedCertificateTimestampDataV2 from "./SignedCertificateTimestampDataV2.js";
 import SignedTreeHeadDataV2 from "./SignedTreeHeadDataV2.js";
@@ -106,6 +107,24 @@ export default class TransItem extends BaseClass
 		this.data.toStream(stream);
 		
 		return true;
+	}
+	//**********************************************************************************
+	/**
+	 * Get hash value for the MerkleTreeLeaf
+	 * @param {String} [hashName=SHA-256] Name of hashing function, default SHA-256
+	 * @return {Promise<ArrayBuffer>}
+	 */
+	async hash(hashName = "SHA-256")
+	{
+		//region Get a "crypto" extension
+		const crypto = getCrypto();
+		if(typeof crypto === "undefined")
+			throw new Error("Unable to create WebCrypto object");
+		//endregion
+		
+		const prefixedBuffer = utilConcatBuf((new Uint8Array([0x00])).buffer, this.buffer);
+		
+		return await crypto.digest({ name: hashName }, prefixedBuffer);
 	}
 	//**********************************************************************************
 }

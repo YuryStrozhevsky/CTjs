@@ -2,7 +2,7 @@ import * as asn1js from "asn1js";
 import { getParametersValue } from "pvutils";
 import { utils } from "./utils.js";
 import Extension from "./Extension.js";
-import BaseClass from "./BaseClass.js";
+import { BaseClass } from "./BaseClass.js";
 //**************************************************************************************
 export default class TimestampedCertificateEntryDataV2 extends BaseClass
 {

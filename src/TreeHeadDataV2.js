@@ -1,6 +1,6 @@
 import { getParametersValue } from "pvutils";
 import { utils } from "./utils.js";
-import BaseClass from "./BaseClass.js";
+import { BaseClass } from "./BaseClass.js";
 import Extension from "./Extension.js";
 //**************************************************************************************
 export default class TreeHeadDataV2 extends BaseClass

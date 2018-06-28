@@ -1,7 +1,7 @@
 import * as asn1js from "asn1js";
 import { getParametersValue } from "pvutils";
 import { getEngine } from "pkijs";
-import BaseClass from "./BaseClass.js";
+import { BaseClass } from "./BaseClass.js";
 //**************************************************************************************
 export default class DigitallySigned extends BaseClass
 {

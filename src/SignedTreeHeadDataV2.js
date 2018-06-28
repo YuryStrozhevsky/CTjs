@@ -1,9 +1,10 @@
+import * as asn1js from "asn1js";
 import { getParametersValue } from "pvutils";
 import { utils } from "./utils.js";
 import TreeHeadDataV2 from "./TreeHeadDataV2.js";
-import BaseClass from "./BaseClass.js";
+import { BaseClassSigned } from "./BaseClass.js";
 //**************************************************************************************
-export default class SignedTreeHeadDataV2 extends BaseClass
+export default class SignedTreeHeadDataV2 extends BaseClassSigned
 {
 	//**********************************************************************************
 	/**
@@ -27,7 +28,7 @@ export default class SignedTreeHeadDataV2 extends BaseClass
 		 */
 		this.treeHead = getParametersValue(parameters, "treeHead", SignedTreeHeadDataV2.constants("treeHead"));
 		/**
-		 * @type {ArrayBuffer}
+		 * @type {Object}
 		 * @description signature
 		 */
 		this.signature = getParametersValue(parameters, "signature", SignedTreeHeadDataV2.constants("signature"));
@@ -47,7 +48,7 @@ export default class SignedTreeHeadDataV2 extends BaseClass
 			case "treeHead":
 				return (new TreeHeadDataV2());
 			case "signature":
-				return (new ArrayBuffer(0));
+				return {};
 			default:
 				throw new Error(`Invalid constant name for SignedTreeHeadDataV2 class: ${name}`);
 		}
@@ -63,9 +64,16 @@ export default class SignedTreeHeadDataV2 extends BaseClass
 		
 		this.treeHead = new TreeHeadDataV2({ stream });
 		
+		//region Signature
 		const signatureLength = stream.getUint16();
+		const signatureData = (new Uint8Array(stream.getBlock(signatureLength))).buffer.slice(0);
 		
-		this.signature = (new Uint8Array(stream.getBlock(signatureLength))).buffer.slice(0);
+		const asn1 = asn1js.fromBER(signatureData);
+		if(asn1.offset === (-1))
+			throw new Error("Object's stream was not correct for SignedCertificateTimestampDataV2");
+		
+		this.signature = asn1.result;
+		//endregion
 	}
 	//**********************************************************************************
 	/**

@@ -1,5 +1,5 @@
 import { getParametersValue } from "pvutils";
-import BaseClass from "./BaseClass.js";
+import { BaseClass } from "./BaseClass.js";
 //**************************************************************************************
 export default class Extension extends BaseClass
 {

@@ -1,8 +1,7 @@
 import { getParametersValue, utilConcatBuf } from "pvutils";
-import { SeqStream } from "bytestreamjs";
 import { getCrypto } from "pkijs";
 import TimestampedEntry from "./TimestampedEntry.js";
-import BaseClass from "./BaseClass.js";
+import { BaseClass } from "./BaseClass.js";
 //**************************************************************************************
 export default class MerkleTreeLeaf extends BaseClass
 {
@@ -105,11 +104,7 @@ export default class MerkleTreeLeaf extends BaseClass
 			throw new Error("Unable to create WebCrypto object");
 		//endregion
 		
-		const stream = new SeqStream();
-		
-		this.toStream(stream);
-		
-		const prefixedBuffer = utilConcatBuf((new Uint8Array([0x00])).buffer, stream.buffer);
+		const prefixedBuffer = utilConcatBuf((new Uint8Array([0x00])).buffer, this.buffer);
 		
 		return await crypto.digest({ name: hashName }, prefixedBuffer);
 	}

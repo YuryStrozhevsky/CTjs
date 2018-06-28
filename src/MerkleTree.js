@@ -13,7 +13,7 @@ export default class MerkleTree
 	{
 		//region Internal properties of the object
 		/**
-		 * @type {Array.<MerkleTreeLeaf|ArrayBuffer>}
+		 * @type {Array.<MerkleTreeLeaf|ArrayBuffer|TransItem>}
 		 * @description leafs Array of leafs for the tree
 		 */
 		this.leafs = getParametersValue(parameters, "leafs", MerkleTree.constants("leafs"));
@@ -51,7 +51,7 @@ export default class MerkleTree
 	//**********************************************************************************
 	/**
 	 * Inialize Merkle Tree using provided set of Merkle Tree Leafs
-	 * @param {Array.<MerkleTreeLeaf|ArrayBuffer>} leafs Array of leafs for the tree
+	 * @param {Array.<MerkleTreeLeaf|ArrayBuffer|TransItem>} leafs Array of leafs for the tree
 	 * @param {String} [hashName=SHA-256] Name of hashing function to apply, default = SHA-256
 	 * @return {Promise<MerkleTree>}
 	 */
@@ -151,7 +151,7 @@ export default class MerkleTree
 	//**********************************************************************************
 	/**
 	 * Append array of Merkel Tree Leafs to current set of leafs
-	 * @param {Array.<MerkleTreeLeaf|ArrayBuffer>} array Array of Merkle Tree Leafs
+	 * @param {Array.<MerkleTreeLeaf|ArrayBuffer|TransItem>} array Array of Merkle Tree Leafs
 	 * @return {Promise<void>}
 	 */
 	async append(array)
@@ -208,7 +208,7 @@ export default class MerkleTree
 	//**********************************************************************************
 	/**
 	 * Verifying an Inclusion Proof for any MerkleTreeLeaf with specified index (RFC6962-bis, 2.1.3.2)
-	 * @param {ArrayBuffer|MerkleTreeLeaf} hash MerkleTreeLeaf object or hash of the MerkleTreeLeaf
+	 * @param {ArrayBuffer|MerkleTreeLeaf|TransItem} hash MerkleTreeLeaf object or hash of the MerkleTreeLeaf
 	 * @param {Number} treeSize The Merkle tree size to which we need to proof existance
 	 * @param {ArrayBuffer} rootHash Hash of the root to compare with
 	 * @param {Array.<ArrayBuffer>} proof Array of hashes with proof

@@ -1,9 +1,10 @@
+import * as asn1js from "asn1js";
 import { getParametersValue } from "pvutils";
 import { utils } from "./utils.js";
 import Extension from "./Extension.js";
-import BaseClass from "./BaseClass.js";
+import { BaseClassSigned } from "./BaseClass.js";
 //**************************************************************************************
-export default class SignedCertificateTimestampDataV2 extends BaseClass
+export default class SignedCertificateTimestampDataV2 extends BaseClassSigned
 {
 	//**********************************************************************************
 	/**
@@ -32,7 +33,7 @@ export default class SignedCertificateTimestampDataV2 extends BaseClass
 		 */
 		this.extensions = getParametersValue(parameters, "extensions", SignedCertificateTimestampDataV2.constants("extensions"));
 		/**
-		 * @type {ArrayBuffer}
+		 * @type {Object}
 		 * @description signature
 		 */
 		this.signature = getParametersValue(parameters, "signature", SignedCertificateTimestampDataV2.constants("signature"));
@@ -54,7 +55,7 @@ export default class SignedCertificateTimestampDataV2 extends BaseClass
 			case "extensions":
 				return [];
 			case "signature":
-				return (new ArrayBuffer(0));
+				return {};
 			default:
 				throw new Error(`Invalid constant name for SignedCertificateTimestampDataV2 class: ${name}`);
 		}
@@ -78,9 +79,16 @@ export default class SignedCertificateTimestampDataV2 extends BaseClass
 			extensionsCount--;
 		}
 		
+		//region Signature
 		const signatureLength = stream.getUint16();
+		const signatureData = (new Uint8Array(stream.getBlock(signatureLength))).buffer.slice(0);
 		
-		this.signature = (new Uint8Array(stream.getBlock(signatureLength))).buffer.slice(0);
+		const asn1 = asn1js.fromBER(signatureData);
+		if(asn1.offset === (-1))
+			throw new Error("Object's stream was not correct for SignedCertificateTimestampDataV2");
+		
+		this.signature = asn1.result;
+		//endregion
 	}
 	//**********************************************************************************
 	/**

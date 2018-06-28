@@ -3,7 +3,7 @@ import { SeqStream } from "bytestreamjs";
 import { utils } from "./utils.js";
 import DigitallySigned from "./DigitallySigned.js";
 import LogEntryType from "./LogEntryType.js";
-import BaseClass from "./BaseClass.js";
+import { BaseClass } from "./BaseClass.js";
 //**************************************************************************************
 export default class SignedCertificateTimestamp extends BaseClass
 {

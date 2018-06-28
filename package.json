@@ -1,6 +1,6 @@
 {
   "name": "ctjs",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "CTjs is a full set of classes necessary to work with any kind of Certificate Transparency log (V1 as from RFC6962, or V2 as from RFC6962-bis). In CTjs you could find all necessary validation/verification functions for all related data shipped with full-featured examples showning how to validate/verify. Also in scope of CTjs I made code showing example from RFC6962 item 2.1.3 on a real data from real Certificate Transparency log",
   "repository": {
     "type": "git",
@@ -20,6 +20,8 @@
     "rollup-plugin-node-builtins": "latest",
     "rollup-plugin-node-resolve": "^1.7.1",
     "node-webcrypto-ossl": "^1.0.37",
+    "esdoc": "^1.1.0",
+    "esdoc-standard-plugin": "^1.0.0",
     "urlencode": "^1.1.0"
   },
   "dependencies": {
@@ -36,7 +38,18 @@
     "test": "cross-env NODE_ENV=test nyc mocha --timeout 0 --require babel-register test/functional-tests.js",
     "rfc6962-example": "mocha --timeout 0 --require babel-register examples/rfc6962-example/rfc6962-example.js",
     "ct-monitor-auditor-example": "mocha --timeout 0 --require babel-register examples/ct-monitor-auditor-example/ct-monitor-auditor-example.js",
+    "build:docs": "esdoc",
     "prepublishOnly": "npm run build"
+  },
+  "esdoc": {
+    "source": "./src",
+    "destination": "./docs",
+    "plugins": [
+      {
+        "name":
+        "esdoc-standard-plugin"
+      }
+    ]
   },
   "jsnext:main": "./src/index.js",
   "module": "./src/index.js",

@@ -3,7 +3,7 @@ import { getParametersValue, utilFromBase, utilToBase } from "pvutils";
 import { Certificate } from "pkijs";
 import PreCert from "./PreCert.js";
 import LogEntryType from "./LogEntryType.js";
-import BaseClass from "./BaseClass.js";
+import { BaseClass } from "./BaseClass.js";
 //**************************************************************************************
 export default class TimestampedEntry extends BaseClass
 {

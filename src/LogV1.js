@@ -300,9 +300,11 @@ export default class LogV1
 	 * @param {Number} start 0-based index of first entry to retrieve, in decimal
 	 * @param {Number} end 0-based index of last entry to retrieve, in decimal
 	 * @param {Boolean} [request=true] Request or not additional absent entries
+	 * @param {Boolean} [getX509=true] Get or not X.509 certificate entries
+	 * @param {Boolean} [getPreCert=true] Get or not pre-certificate entries
 	 * @return {Promise<Array>}
 	 */
-	async get_entries(start, end, request = true)
+	async get_entries_raw(start, end, request = true, getX509 = true, getPreCert = true)
 	{
 		//region Initial variables
 		const api = "get-entries";
@@ -325,7 +327,7 @@ export default class LogV1
 		{
 			//region Initial variables
 			let extraData;
-
+			
 			const stream = new SeqStream({
 				buffer: stringToArrayBuffer(fromBase64(entry.extra_data))
 			});
@@ -336,11 +338,14 @@ export default class LogV1
 					buffer: stringToArrayBuffer(fromBase64(entry.leaf_input))
 				})
 			});
-			
+
 			switch(merkleTreeLeaf.entry.entryType)
 			{
 				case LogEntryType.constants("x509_entry"):
 					{
+						if(getX509 === false)
+							continue;
+						
 						extraData = [];
 						
 						stream.getUint24(); // Overall data length, useless at the moment
@@ -348,41 +353,33 @@ export default class LogV1
 						while(stream.length)
 						{
 							const certificateLength = stream.getUint24();
+							const certificateBlock = (new Uint8Array(stream.getBlock(certificateLength))).buffer.slice(0);
 							
-							const asn1 = asn1js.fromBER((new Uint8Array(stream.getBlock(certificateLength))).buffer.slice(0));
-							if(asn1.offset === (-1))
-								throw new Error("Object's stream was not correct for MerkleTreeLeaf extra_data");
-							
-							extraData.push(new Certificate({ schema: asn1.result }));
+							extraData.push(certificateBlock);
 						}
 					}
 					break;
 				case LogEntryType.constants("precert_entry"):
 					{
+						if(getPreCert === false)
+							continue;
+						
 						//region Get information about "pre_certificate" value
 						const preCertificateLength = stream.getUint24();
 						
-						const asn1 = asn1js.fromBER((new Uint8Array(stream.getBlock(preCertificateLength))).buffer.slice(0));
-						if(asn1.offset === (-1))
-							throw new Error("Object's stream was not correct for MerkleTreeLeaf extra_data");
-						
-						const preCertificate = new Certificate({ schema: asn1.result });
+						const preCertificate = (new Uint8Array(stream.getBlock(preCertificateLength))).buffer.slice(0);
 						//endregion
 						
 						//region Get information about "precertificate_chain" array
 						const preCertificateChain = [];
 						
 						stream.getUint24(); // Overall data length, useless at the moment
-
+						
 						while(stream.length)
 						{
 							const certificateLength = stream.getUint24();
 							
-							const asn1 = asn1js.fromBER((new Uint8Array(stream.getBlock(certificateLength))).buffer.slice(0));
-							if(asn1.offset === (-1))
-								throw new Error("Object's stream was not correct for MerkleTreeLeaf extra_data");
-							
-							preCertificateChain.push(new Certificate({ schema: asn1.result }));
+							preCertificateChain.push((new Uint8Array(stream.getBlock(certificateLength))).buffer.slice(0));
 						}
 						//endregion
 						
@@ -411,7 +408,7 @@ export default class LogV1
 				const proof = await this.get_proof_by_hash(least.leaf, end);
 				if(proof.leaf_index !== end)
 				{
-					const additionalEntries = await this.get_entries(proof.leaf_index + 1, end);
+					const additionalEntries = await this.get_entries_raw(proof.leaf_index + 1, end, request, getX509, getPreCert);
 					entriesArray.push(...additionalEntries);
 				}
 			}
@@ -420,6 +417,139 @@ export default class LogV1
 		//endregion
 		
 		return entriesArray;
+	}
+	//**********************************************************************************
+	/**
+	 * Implement call to "get-entries" Certificate Transparency Log API
+	 * @param {Number} start 0-based index of first entry to retrieve, in decimal
+	 * @param {Number} end 0-based index of last entry to retrieve, in decimal
+	 * @param {Boolean} [request=true] Request or not additional absent entries
+	 * @param {Boolean} [getX509=true] Get or not X.509 certificate entries
+	 * @param {Boolean} [getPreCert=true] Get or not pre-certificate entries
+	 * @return {Promise<Array>}
+	 */
+	async get_entries(start, end, request = true, getX509 = true, getPreCert = true)
+	{
+		const result = [];
+		
+		const entries = await this.get_entries_raw(start, end, request, getX509, getPreCert);
+		
+		for(const entry of entries)
+		{
+			let extraData;
+			
+			switch(entry.leaf.entry.entryType)
+			{
+				case LogEntryType.constants("x509_entry"):
+					{
+						if(getX509 === false)
+							continue;
+						
+						extraData = [];
+						
+						for(const certificate of entry.extra_data)
+						{
+							const asn1 = asn1js.fromBER(certificate);
+							if(asn1.offset === (-1))
+								throw new Error("Object's stream was not correct for MerkleTreeLeaf extra_data");
+							
+							extraData.push(new Certificate({ schema: asn1.result }));
+						}
+					}
+					break;
+				case LogEntryType.constants("precert_entry"):
+					{
+						if(getPreCert === false)
+							continue;
+						
+						//region Get information about "pre_certificate" value
+						const asn1 = asn1js.fromBER(entry.extra_data.pre_certificate);
+						if(asn1.offset === (-1))
+							throw new Error("Object's stream was not correct for MerkleTreeLeaf extra_data");
+						
+						const preCertificate = new Certificate({ schema: asn1.result });
+						//endregion
+						
+						//region Get information about "precertificate_chain" array
+						const preCertificateChain = [];
+						
+						for(const preCertificateChainElement of entry.extra_data.precertificate_chain)
+						{
+							const asn1 = asn1js.fromBER(preCertificateChainElement);
+							if(asn1.offset === (-1))
+								throw new Error("Object's stream was not correct for MerkleTreeLeaf extra_data");
+							
+							preCertificateChain.push(new Certificate({ schema: asn1.result }));
+						}
+						//endregion
+						
+						extraData = {
+							pre_certificate: preCertificate,
+							precertificate_chain: preCertificateChain
+						};
+					}
+					break;
+				default:
+			}
+			
+			result.push({
+				leaf: entry.leaf,
+				extra_data: extraData
+			});
+		}
+		
+		return result;
+	}
+	//**********************************************************************************
+	/**
+	 * Implement call to "get-entries" Certificate Transparency Log API and return leafs only
+	 * @param {Number} start 0-based index of first entry to retrieve, in decimal
+	 * @param {Number} end 0-based index of last entry to retrieve, in decimal
+	 * @param {Boolean} [request=true] Request or not additional absent entries
+	 * @return {Promise<Array>}
+	 */
+	async get_leafs(start, end, request = true)
+	{
+		//region Initial variables
+		const api = "get-entries";
+		//endregion
+		
+		/**
+		 * @typedef entry
+		 * @type {Object}
+		 * @property {String} leaf_input The base64-encoded MerkleTreeLeaf structure
+		 * @property {String} extra_data The base64-encoded unsigned data pertaining to the log entry
+		 * @type {Object}
+		 * @property {Array.<entry>} entries An array of objects
+		 */
+		const json = await this.fetch(`${this.url}/${api}?start=${start}&end=${end}`)
+			.then(handleResult(api), handleError(api));
+		
+		//region Make major result array
+		const result = Array.from(json.entries, element => new MerkleTreeLeaf({
+			stream: new SeqStream({
+				buffer: stringToArrayBuffer(fromBase64(element.leaf_input))
+			})
+		}));
+		//endregion
+		
+		//region Check we have all requested entries (some CT logs could return only a part)
+		if(request && (result.length > 0))
+		{
+			try
+			{
+				const proof = await this.get_proof_by_hash(result[result.length - 1], end);
+				if(proof.leaf_index !== end)
+				{
+					const additionalEntries = await this.get_leafs(proof.leaf_index + 1, end, request);
+					result.push(...additionalEntries);
+				}
+			}
+			catch(ex){}
+		}
+		//endregion
+
+		return result;
 	}
 	//**********************************************************************************
 	/**

@@ -1,6 +1,6 @@
 import { getParametersValue } from "pvutils";
 import { utils } from "./utils.js";
-import BaseClass from "./BaseClass.js";
+import { BaseClass } from "./BaseClass.js";
 //**************************************************************************************
 export default class InclusionProofDataV2 extends BaseClass
 {
